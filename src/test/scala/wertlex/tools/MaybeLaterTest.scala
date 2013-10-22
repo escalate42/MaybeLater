@@ -4,6 +4,8 @@ import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
 import scala.concurrent._
 import scala.concurrent.duration._
+import java.util.concurrent.atomic.AtomicLong
+import org.specs2.specification.Scope
 
 
 /**
@@ -45,5 +47,51 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
       })
       Await.result(ml, 3 seconds) must beEqualTo("text")
     }
+
+    "apply map function once to contained value in synchronous mode" in {
+      val counter = new AtomicLong(0)
+      def func(s: String) = {
+        counter.incrementAndGet()
+        s"$s$s"
+      }
+      val ml = MaybeLater.nowSome("Text").map(func)
+      Await.result(ml, 1 second) must beEqualTo("TextText") and (
+        counter.get must beEqualTo(1L)
+      )
+    }
+
+    "apply map function once to contained value in asynchronous mode" in {
+      val counter = new AtomicLong(0)
+      def func(s: String) = {
+        counter.incrementAndGet()
+        s"$s$s"
+      }
+      val ml = MaybeLater(future{
+        Thread.sleep(2000)
+        Some("Text")
+      }).map(func)
+      Await.result(ml, 3 seconds) must beEqualTo("TextText") and (
+        counter.get must beEqualTo(1L)
+      )
+    }
+
+    "do not apply map function if no contained value" in new CounterAndFunc {
+      val ml = MaybeLater(future{
+        Thread.sleep(2000)
+        None
+      }).map(func)
+      Await.result(ml, 3 seconds) must throwA[NoSuchElementException] and (
+        counter.get must beEqualTo(0L)
+      )
+    }
+  }
+}
+
+
+trait CounterAndFunc extends Scope {
+  val counter = new AtomicLong(0)
+  def func(s: String) = {
+    counter.incrementAndGet()
+    s"$s$s"
   }
 }
