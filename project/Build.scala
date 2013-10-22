@@ -23,6 +23,6 @@ object MLBuild extends Build {
 	lazy val maybeLater = Project (
 		"maybeLater",
 		file("."),
-		settings = buildSettings
+		settings = buildSettings ++ Seq(libraryDependencies ++= test.deps)
 	)
 }
