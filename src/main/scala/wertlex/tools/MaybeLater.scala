@@ -4,6 +4,7 @@ import scala.concurrent._
 import scala.Some
 import scala.util.{Success, Failure, Try}
 import scala.util.control.NonFatal
+import scala.concurrent.duration.Duration
 
 /**
  * Wrapper over Future[Option[A]].
@@ -15,7 +16,7 @@ import scala.util.control.NonFatal
  * v.dubs
  * Date: 16.09.13 22:20
  */
-class MaybeLater[A](val body: Future[Option[A]]) {
+class MaybeLater[A](val body: Future[Option[A]]) extends Awaitable[A] {
 
   def map[B](f: A => B)(implicit ec: ExecutionContext): MaybeLater[B] =  new MaybeLater(
     body.map{ maybeA => maybeA.map(f) }
@@ -55,9 +56,16 @@ class MaybeLater[A](val body: Future[Option[A]]) {
 
   def foreach[B](f: A => B)(implicit ec: ExecutionContext): Unit = map(f)
 
-//  def onComplete[U](f: Try[A] => U)(implicit ec: ExecutionContext): Unit = {
-//
-//  }
+
+  def ready(atMost: Duration)(implicit permit: CanAwait): this.type = {
+    body.ready(atMost)
+    this
+  }
+
+  def result(atMost: Duration)(implicit permit: CanAwait): A = {
+    body.result(atMost).get
+  }
+
 }
 
 object MaybeLater {
