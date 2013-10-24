@@ -48,24 +48,14 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
       Await.result(ml, 3 seconds) must beEqualTo("text")
     }
 
-    "apply map function once to contained value in synchronous mode" in {
-      val counter = new AtomicLong(0)
-      def func(s: String) = {
-        counter.incrementAndGet()
-        s"$s$s"
-      }
+    "apply map function once to contained value in synchronous mode" in new CounterAndFunc {
       val ml = MaybeLater.nowSome("Text").map(func)
       Await.result(ml, 1 second) must beEqualTo("TextText") and (
         counter.get must beEqualTo(1L)
       )
     }
 
-    "apply map function once to contained value in asynchronous mode" in {
-      val counter = new AtomicLong(0)
-      def func(s: String) = {
-        counter.incrementAndGet()
-        s"$s$s"
-      }
+    "apply map function once to contained value in asynchronous mode" in new CounterAndFunc {
       val ml = MaybeLater(future{
         Thread.sleep(2000)
         Some("Text")
@@ -83,6 +73,13 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
       Await.result(ml, 3 seconds) must throwA[NoSuchElementException] and (
         counter.get must beEqualTo(0L)
       )
+    }
+  }
+
+  "maybeLater" should {
+    "construct MaybeLater from Option[A]" in {
+      val ml = maybeLater { Some("text") }
+      Await.result(ml, 10 seconds) must beEqualTo("text")
     }
   }
 }
