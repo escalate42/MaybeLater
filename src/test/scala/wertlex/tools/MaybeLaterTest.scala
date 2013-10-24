@@ -17,7 +17,7 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
 
   private implicit val ec = scala.concurrent.ExecutionContext.global
 
-  "MaybeLater" should {
+  "MaybeLater in general" should {
     "allow to construct value from Option" in {
       // must compiled
       MaybeLater.now(Option("Created"))
@@ -48,11 +48,15 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
       Await.result(ml, 3 seconds) must beEqualTo("text")
     }
 
+
+  }
+
+  "MaybeLater.map" should {
     "apply map function once to contained value in synchronous mode" in new CounterAndFunc {
       val ml = MaybeLater.nowSome("Text").map(func)
       Await.result(ml, 1 second) must beEqualTo("TextText") and (
         counter.get must beEqualTo(1L)
-      )
+        )
     }
 
     "apply map function once to contained value in asynchronous mode" in new CounterAndFunc {
@@ -62,7 +66,7 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
       }).map(func)
       Await.result(ml, 3 seconds) must beEqualTo("TextText") and (
         counter.get must beEqualTo(1L)
-      )
+        )
     }
 
     "do not apply map function if no contained value" in new CounterAndFunc {
@@ -72,9 +76,25 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
       }).map(func)
       Await.result(ml, 3 seconds) must throwA[NoSuchElementException] and (
         counter.get must beEqualTo(0L)
-      )
+        )
+    }
+
+    "eventually finish with success on exception in map function" in new CounterAndFunc {
+//      val ml = maybeLater {
+//        Thread.sleep(1000)
+//        throw new Exception("Wow, thrown!")
+//        Some("text")
+//      }
+//      Await.result(ml.map(func), 3 seconds) must beEqualTo("text")
+      val fu = future {
+          Thread.sleep(1000)
+          throw new Exception("Wow, thrown!")
+          "text"
+      }
+      Await.result(fu.map(func), 3 seconds) must throwA[Exception]
     }
   }
+
 
   "maybeLater" should {
     "construct MaybeLater from Option[A]" in {
