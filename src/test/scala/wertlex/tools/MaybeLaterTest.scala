@@ -33,21 +33,32 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
     }
 
     "throw exception if result will be obtained later then Await.result duration" in {
-      val ml = MaybeLater( future {
+      val ml = maybeLater {
         Thread.sleep(3000)
         Some("text")
-      })
+      }
       Await.result(ml, 1 second) must throwA[TimeoutException]
     }
 
     "successfully Await.result for long running process" in {
-      val ml = MaybeLater( future {
+      val ml = maybeLater {
         Thread.sleep(2000)
         Some("text")
-      })
+      }
       Await.result(ml, 3 seconds) must beEqualTo("text")
     }
 
+
+    "implement both Awaitable[A] and Awaitable[Option[A]]" in {
+
+      val ml = maybeLater(Some("text"))
+      val asA:    String          = Await.result(ml, 1 second)
+      val asOptA: Option[String]  = Await.result(ml.asAwaitableOpt, 1 second)
+
+      (asA must beEqualTo("text")) and
+      (asOptA must beEqualTo(Some("text")))
+
+    }
 
   }
 
@@ -60,20 +71,20 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
     }
 
     "apply map function once to contained value in asynchronous mode" in new CounterAndFunc {
-      val ml = MaybeLater(future{
+      val ml = maybeLater{
         Thread.sleep(2000)
         Some("Text")
-      }).map(func)
+      }.map(func)
       Await.result(ml, 3 seconds) must beEqualTo("TextText") and (
         counter.get must beEqualTo(1L)
         )
     }
 
     "do not apply map function if no contained value" in new CounterAndFunc {
-      val ml = MaybeLater(future{
+      val ml = maybeLater{
         Thread.sleep(2000)
         None
-      }).map(func)
+      }.map(func)
       Await.result(ml, 3 seconds) must throwA[NoSuchElementException] and (
         counter.get must beEqualTo(0L)
         )

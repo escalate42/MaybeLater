@@ -16,7 +16,7 @@ import scala.concurrent.duration.Duration
  * v.dubs
  * Date: 16.09.13 22:20
  */
-class MaybeLater[A](val body: Future[Option[A]]) extends Awaitable[A] {
+class MaybeLater[A](val body: Future[Option[A]]) {
 
   def map[B](f: A => B)(implicit ec: ExecutionContext): MaybeLater[B] =  new MaybeLater(
     body.map{ maybeA => maybeA.map(f) }
@@ -56,25 +56,63 @@ class MaybeLater[A](val body: Future[Option[A]]) extends Awaitable[A] {
 
   def foreach[B](f: A => B)(implicit ec: ExecutionContext): Unit = map(f)
 
+  /**
+   * Casts this to Awaitable[A] interface
+   */
+  lazy val asAwaitable:     Awaitable[A]          = new MaybeLaterAwaitable(this)
 
-  def ready(atMost: Duration)(implicit permit: CanAwait): this.type = {
-    body.ready(atMost)
-    this
-  }
-
-  def result(atMost: Duration)(implicit permit: CanAwait): A = {
-    body.result(atMost).get
-  }
+  /**
+   * Casts this to Awaitable[Option[A]] interface
+   */
+  lazy val asAwaitableOpt:  Awaitable[Option[A]]  = new MaybeLaterAwaitableOption[A](this)
 
 }
 
 object MaybeLater {
   type MaybeLaterAlias[A] = Future[Option[A]]
   implicit def toMaybeLater[A](futureOption: MaybeLaterAlias[A])     = apply(futureOption)
-  implicit def fromMaybeLater[A](maybeLater: MaybeLater[A])          = unapply(maybeLater)
+//  implicit def fromMaybeLater[A](maybeLater: MaybeLater[A])          = unapply(maybeLater)
   def apply[A](futureOption: MaybeLaterAlias[A]): MaybeLater[A]      = new MaybeLater(futureOption)
   def unapply[A](maybeLater: MaybeLater[A]):      MaybeLaterAlias[A] = maybeLater.body
   def now[A](optA: Option[A]):                    MaybeLater[A]      = new MaybeLater(Future.successful(optA))
   def nowSome[A](a: A):                           MaybeLater[A]      = now(Some(a))
   def nowNone[A]:                                 MaybeLater[A]      = now(None)
+
+  implicit def toAwaitable[A](ml: MaybeLater[A]) = ml.asAwaitable
+}
+
+
+/**
+ * Wrapper which implements Awaitable[A] interface for MaybeLater[A]
+ * @param ml MaybeLater to extends with Awaitable[A] interface
+ * @tparam A
+ */
+class MaybeLaterAwaitable[A](private val ml: MaybeLater[A]) extends Awaitable[A] {
+
+  def ready(atMost: Duration)(implicit permit: CanAwait): this.type = {
+    ml.body.ready(atMost)
+    this
+  }
+
+  def result(atMost: Duration)(implicit permit: CanAwait): A = {
+    ml.body.result(atMost).get
+  }
+}
+
+/**
+ * Wrapper which implements Awaitable[A] interface for MaybeLater[Option[A]]
+ * @param ml MaybeLater to extends with Awaitable[Option[A]] interface
+ * @tparam A
+ */
+class MaybeLaterAwaitableOption[A](private val ml: MaybeLater[A]) extends Awaitable[Option[A]] {
+
+  def ready(atMost: Duration)(implicit permit: CanAwait): this.type = {
+    ml.body.ready(atMost)
+    this
+  }
+
+  def result(atMost: Duration)(implicit permit: CanAwait): Option[A] = {
+    ml.body.result(atMost)
+  }
+
 }
