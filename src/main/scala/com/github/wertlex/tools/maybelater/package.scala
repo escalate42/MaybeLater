@@ -1,13 +1,14 @@
-package wertlex
+package com.github.wertlex.tools
 
 import scala.concurrent._
+import com.github.wertlex.tools.maybelater.MaybeLater
 
 /**
  * User: wert
  * Date: 24.10.13
  * Time: 19:27
  */
-package object tools {
+package object maybelater {
 
   /** Starts an asynchronous computation and returns a `MaybeLater` object with the result of that computation.
     *

@@ -6,6 +6,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import java.util.concurrent.atomic.AtomicLong
 import org.specs2.specification.Scope
+import com.github.wertlex.tools.maybelater._
 
 
 /**
@@ -50,14 +51,12 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
 
 
     "implement both Awaitable[A] and Awaitable[Option[A]]" in {
-
       val ml = maybeLater(Some("text"))
       val asA:    String          = Await.result(ml, 1 second)
       val asOptA: Option[String]  = Await.result(ml.asAwaitableOpt, 1 second)
 
       (asA must beEqualTo("text")) and
       (asOptA must beEqualTo(Some("text")))
-
     }
 
   }
@@ -90,19 +89,13 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
         )
     }
 
-    "eventually finish with success on exception in map function" in new CounterAndFunc {
-//      val ml = maybeLater {
-//        Thread.sleep(1000)
-//        throw new Exception("Wow, thrown!")
-//        Some("text")
-//      }
-//      Await.result(ml.map(func), 3 seconds) must beEqualTo("text")
-      val fu = future {
-          Thread.sleep(1000)
-          throw new Exception("Wow, thrown!")
-          "text"
+    "throw an exception on exception in map function" in new CounterAndFunc {
+      val ml = maybeLater {
+        Thread.sleep(1000)
+        throw new Exception("Wow, thrown!")
+        Some("text")
       }
-      Await.result(fu.map(func), 3 seconds) must throwA[Exception]
+      Await.result(ml.map(func), 3 seconds) must throwA[Exception]
     }
   }
 

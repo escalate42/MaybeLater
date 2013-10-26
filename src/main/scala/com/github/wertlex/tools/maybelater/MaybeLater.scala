@@ -1,4 +1,4 @@
-package wertlex.tools
+package com.github.wertlex.tools.maybelater
 
 import scala.concurrent._
 import scala.Some
