@@ -16,7 +16,12 @@ import scala.concurrent.duration.Duration
  * v.dubs
  * Date: 16.09.13 22:20
  */
-class MaybeLater[A](val body: Future[Option[A]]) {
+class MaybeLater[A](protected val body: Future[Option[A]]) {
+
+  /**
+   * A bit nicer way for casting MaybeLater[A] to Future[Option[A]]
+   */
+  val asFuture: Future[Option[A]] = body
 
   def map[B](f: A => B)(implicit ec: ExecutionContext): MaybeLater[B] =  new MaybeLater(
     body.map{ maybeA => maybeA.map(f) }
@@ -90,12 +95,12 @@ object MaybeLater {
 class MaybeLaterAwaitable[A](private val ml: MaybeLater[A]) extends Awaitable[A] {
 
   def ready(atMost: Duration)(implicit permit: CanAwait): this.type = {
-    ml.body.ready(atMost)
+    ml.asFuture.ready(atMost)
     this
   }
 
   def result(atMost: Duration)(implicit permit: CanAwait): A = {
-    ml.body.result(atMost).get
+    ml.asFuture.result(atMost).get
   }
 }
 
@@ -107,12 +112,12 @@ class MaybeLaterAwaitable[A](private val ml: MaybeLater[A]) extends Awaitable[A]
 class MaybeLaterAwaitableOption[A](private val ml: MaybeLater[A]) extends Awaitable[Option[A]] {
 
   def ready(atMost: Duration)(implicit permit: CanAwait): this.type = {
-    ml.body.ready(atMost)
+    ml.asFuture.ready(atMost)
     this
   }
 
   def result(atMost: Duration)(implicit permit: CanAwait): Option[A] = {
-    ml.body.result(atMost)
+    ml.asFuture.result(atMost)
   }
 
 }
