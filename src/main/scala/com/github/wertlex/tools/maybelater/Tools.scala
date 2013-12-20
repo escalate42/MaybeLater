@@ -13,7 +13,7 @@ object Tools {
    * Implicit class to provide maybeLater.toFutureBoolean syntax
    * @param ml
    */
-  implicit class SimplifyToFuture(val ml: MaybeLater[Boolean]) {
+  implicit class SimplifyToFuture(val ml: MaybeLater[Boolean]) extends AnyVal {
 
     def toFutureBoolean(implicit ec: ExecutionContext): Future[Boolean] = ml.asFuture.map{ optRes =>
         optRes match {
@@ -29,7 +29,7 @@ object Tools {
    * @param fo
    * @tparam T
    */
-  implicit class FutureOptionToMaybeLater[T](val fo: Future[Option[T]]) {
+  implicit class FutureOptionToMaybeLater[T](val fo: Future[Option[T]]) extends AnyVal {
     def toMaybeLater: MaybeLater[T] = MaybeLater(fo)
   }
 }
