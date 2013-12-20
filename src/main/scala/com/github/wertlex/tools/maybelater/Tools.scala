@@ -23,5 +23,14 @@ object Tools {
       }
 
   }
+
+  /**
+   * Allows myFuture.toMaybeLater syntax for future
+   * @param fo
+   * @tparam T
+   */
+  implicit class FutureOptionToMaybeLater[T](val fo: Future[Option[T]]) {
+    def toMaybeLater: MaybeLater[T] = MaybeLater(fo)
+  }
 }
 
