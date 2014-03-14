@@ -1,4 +1,4 @@
-package wertlex.tools
+package com.github.wertlex.tools.maybelater
 
 import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
@@ -6,8 +6,6 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import java.util.concurrent.atomic.AtomicLong
 import org.specs2.specification.Scope
-import com.github.wertlex.tools.maybelater._
-
 
 /**
  * User: wert

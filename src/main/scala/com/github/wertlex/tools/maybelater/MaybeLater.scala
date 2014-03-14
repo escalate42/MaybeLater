@@ -5,6 +5,7 @@ import scala.Some
 import scala.util.{Success, Failure, Try}
 import scala.util.control.NonFatal
 import scala.concurrent.duration.Duration
+import scala.collection.generic.CanBuildFrom
 
 /**
  * Wrapper over Future[Option[A]].
@@ -28,7 +29,7 @@ class MaybeLater[A](protected val body: Future[Option[A]]) {
   )
 
   def flatMap[B](f: A => MaybeLater[B])(implicit ec: ExecutionContext): MaybeLater[B] = {
-    val pr = promise[Option[B]]
+    val pr = promise[Option[B]]()
     val fu = pr.future
 
     body onComplete {
@@ -82,7 +83,18 @@ object MaybeLater {
   def now[A](optA: Option[A]):                    MaybeLater[A]      = new MaybeLater(Future.successful(optA))
   def nowSome[A](a: A):                           MaybeLater[A]      = now(Some(a))
   def nowNone[A]:                                 MaybeLater[A]      = now(None)
-
+  def sequence[A, M[_] <: TraversableOnce[_]](in: M[MaybeLater[A]])(
+    implicit cbf: CanBuildFrom[M[MaybeLater[A]], A, M[A]], executor: ExecutionContext
+  ): MaybeLater[M[A]] = {
+    in.foldLeft(MaybeLater.nowSome(cbf(in))) {
+      (fr, fa) => fr.flatMap { r =>
+        fa.asInstanceOf[MaybeLater[A]].asFuture.map {
+          case Some(a) => Some(r += a)
+          case None    => Some(r)
+        }
+      }
+    } map (_.result())
+  }
   implicit def toAwaitable[A](ml: MaybeLater[A]) = ml.asAwaitable
 }
 
