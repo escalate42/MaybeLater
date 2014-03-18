@@ -52,5 +52,14 @@ object Tools {
   implicit class FutureOptionToMaybeLater[T](val fo: Future[Option[T]]) extends AnyVal {
     def toMaybeLater: MaybeLater[T] = MaybeLater(fo)
   }
+
+  /**
+   * Allows myFuture.toMaybeLater syntax for future
+   * @param fo
+   * @tparam T
+   */
+  implicit class FutureListToMaybeLater[T](val fo: Future[List[T]]) extends AnyVal {
+    def toMaybeLater(implicit ec: ExecutionContext): MaybeLater[List[T]] = fo.map(Option(_)).toMaybeLater
+  }
 }
 

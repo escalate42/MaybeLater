@@ -47,5 +47,11 @@ class ToolsTest extends Specification with NoTimeConversions {
       )
       Await.result(mlList.toMaybeLater.asAwaitable, 10 seconds) == List(1, 3, 4)
     }
+
+    "allow .toMaybeLater syntax on Future[List[T]]" in {
+      val list = List(1, 2, 3, 4, 5)
+      val fList = future { List(1, 2, 3, 4, 5) }
+      Await.result(fList.toMaybeLater.asAwaitable, 10 seconds) == list
+    }
   }
 }
