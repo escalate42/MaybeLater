@@ -17,7 +17,7 @@ import scala.collection.generic.CanBuildFrom
  * v.dubs
  * Date: 16.09.13 22:20
  */
-class MaybeLater[A](protected val body: Future[Option[A]]) {
+class MaybeLater[+A](protected val body: Future[Option[A]]) {
 
   /**
    * A bit nicer way for casting MaybeLater[A] to Future[Option[A]]
