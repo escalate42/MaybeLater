@@ -4,7 +4,7 @@ import Keys._
 object BuildSettings {
   val buildOrganization = "wert_lex"
   val buildVersion      = "0.1-SNAPHSOT"
-  val buildScalaVersion = "2.10.2"
+  val buildScalaVersion = "2.10.3"
 
   val buildSettings = Defaults.defaultSettings ++ Seq (
     organization := buildOrganization,

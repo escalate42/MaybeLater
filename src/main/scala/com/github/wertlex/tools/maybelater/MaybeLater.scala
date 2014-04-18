@@ -54,6 +54,21 @@ class MaybeLater[+A](protected val body: Future[Option[A]]) {
     new MaybeLater(fu)
   }
 
+
+  def fold[B](onNone: => B, onSome: A => B)(implicit ec: ExecutionContext): MaybeLater[B] = {
+    val p = promise[B]()
+    body.onComplete{
+      case Success(optA) => {
+        if(optA.isDefined)  p.success(onSome(optA.get))
+        else                p.success(onNone)
+      }
+      case Failure(e) => p.success(onNone)
+    }
+
+    new MaybeLater[B](p.future.map(Option(_)))
+  }
+
+
   def withFilter(f: A => Boolean)(implicit ec: ExecutionContext): MaybeLater[A] = new MaybeLater(
     body.map { maybeA =>
       maybeA.filter(f)

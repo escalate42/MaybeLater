@@ -97,6 +97,19 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
     }
   }
 
+  "MaybeLater.fold" should {
+    "fold to value of one type in any case" in {
+      val fullML  = MaybeLater.nowSome("text")
+      val emptyML = MaybeLater.nowNone
+
+      val m1 = fullML.fold("empty", _ => "full")
+      val m2 = emptyML.fold("empty", _ => "full")
+
+      Await.result(m1, 10 seconds) must beEqualTo("full")
+      Await.result(m2, 10 seconds) must beEqualTo("empty")
+    }
+  }
+
 
   "maybeLater" should {
     "construct MaybeLater from Option[A]" in {
