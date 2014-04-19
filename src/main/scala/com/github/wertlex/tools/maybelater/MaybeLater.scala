@@ -111,6 +111,8 @@ object MaybeLater {
     } map (_.result())
   }
   implicit def toAwaitable[A](ml: MaybeLater[A]) = ml.asAwaitable
+
+  implicit def toSquashable[A](ml: MaybeLater[Option[A]]) = new MaybeLaterSquashable[A](ml)
 }
 
 
@@ -147,4 +149,16 @@ class MaybeLaterAwaitableOption[A](private val ml: MaybeLater[A]) extends Awaita
     ml.asFuture.result(atMost)
   }
 
+}
+
+/**
+ * Squashes MaybeLater[Option[A]] to MaybeLater[A]
+ * @param ml
+ * @tparam A
+ */
+class MaybeLaterSquashable[A](private val ml: MaybeLater[Option[A]]) {
+  def squash(implicit ec: ExecutionContext): MaybeLater[A] = {
+    val r = ml.asFuture.map{ optOptA => optOptA.flatten}
+    MaybeLater(r)
+  }
 }

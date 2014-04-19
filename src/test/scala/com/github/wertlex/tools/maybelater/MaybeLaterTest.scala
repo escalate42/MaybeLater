@@ -110,6 +110,14 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
     }
   }
 
+  "MaybeLater[Option[A]]" should {
+    "be squashable to MaybeLater[A]" in {
+      val ml = MaybeLater.nowSome(Option("text"))
+      val squashedML = ml.squash
+      true
+    }
+  }
+
 
   "maybeLater" should {
     "construct MaybeLater from Option[A]" in {
@@ -117,6 +125,8 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
       Await.result(ml, 10 seconds) must beEqualTo("text")
     }
   }
+
+
 }
 
 
