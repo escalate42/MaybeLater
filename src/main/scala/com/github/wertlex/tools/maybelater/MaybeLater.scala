@@ -68,7 +68,7 @@ class MaybeLater[+A](protected val body: Future[Option[A]]) {
     new MaybeLater[B](p.future.map(Option(_)))
   }
 
-  def flatFold[B](onSome: A => MaybeLater[B])(onNone: MaybeLater[B])(implicit ec: ExecutionContext): MaybeLater[B] = MaybeLater(
+  def flatFold[B](onNone: MaybeLater[B])(onSome: A => MaybeLater[B])(implicit ec: ExecutionContext): MaybeLater[B] = MaybeLater(
     body.flatMap {
       case None    => onNone.asFuture
       case Some(v) => onSome(v).asFuture
