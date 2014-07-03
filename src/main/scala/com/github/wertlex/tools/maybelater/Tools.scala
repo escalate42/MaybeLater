@@ -1,7 +1,12 @@
 package com.github.wertlex.tools.maybelater
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.generic.CanBuildFrom
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
+import scalaz.concurrent.Task
+import scalaz.OptionT
+import scalaz.OptionT._
+import scalaz.{\/, \/-, -\/}
 
 /**
  * User: wert
@@ -60,6 +65,36 @@ object Tools {
    */
   implicit class FutureListToMaybeLater[T](val fo: Future[List[T]]) extends AnyVal {
     def toMaybeLater(implicit ec: ExecutionContext): MaybeLater[List[T]] = fo.map(Option(_)).toMaybeLater
+  }
+
+  implicit class MaybeLaterToOptionT[T](val ml: MaybeLater[T]) extends AnyVal {
+    def toOptionT(implicit ec: ExecutionContext): OptionT[Task, T] = optionT(scalaz.scalaFutureToScalazTask(ml.asFuture))
+  }
+
+  implicit class OptionTToMaybeLater[T](val ot: OptionT[Task, T]) extends AnyVal {
+    def toMaybeLater(implicit ec: ExecutionContext): MaybeLater[T] = MaybeLater(scalaz.scalazTaskToScalaFuture(ot.run))
+  }
+
+  object scalaz {
+    def scalaFutureToScalazTask[T](f: Future[T])(implicit ec: ExecutionContext): Task[T] = Task.async[T]( reg =>
+      f.onComplete {
+        case Success(t)   => reg(\/.right(t))
+        case Failure(exc) => reg(\/.left(exc))
+      }
+    )
+    
+    implicit class ScalaFutureToScalazTask[T](val f: Future[T]) extends AnyVal {
+      def toScalazTask(implicit ec: ExecutionContext) = scalaFutureToScalazTask(f)
+    }
+
+    def scalazTaskToScalaFuture[T](t: Task[T])(implicit ec: ExecutionContext): Future[T] = t.attemptRun match {
+      case \/-(value) => Future.apply(value)
+      case -\/(exc)   => Future.failed(exc)
+    }
+    
+    implicit class ScalazTaskToScalaFuture[T](val t: Task[T]) extends AnyVal {
+      def toScalaFuture(implicit ec: ExecutionContext) = scalazTaskToScalaFuture(t)
+    }
   }
 }
 

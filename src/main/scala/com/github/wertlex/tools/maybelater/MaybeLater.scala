@@ -1,11 +1,13 @@
 package com.github.wertlex.tools.maybelater
 
 import scala.concurrent._
-import scala.Some
-import scala.util.{Success, Failure, Try}
+import scala.util.{Success, Failure}
 import scala.util.control.NonFatal
 import scala.concurrent.duration.Duration
 import scala.collection.generic.CanBuildFrom
+import scalaz.concurrent.Task
+import scalaz.OptionT
+import scalaz.OptionT._
 
 /**
  * Wrapper over Future[Option[A]].
@@ -116,9 +118,14 @@ object MaybeLater {
       }
     } map (_.result())
   }
+
   implicit def toAwaitable[A](ml: MaybeLater[A]) = ml.asAwaitable
 
   implicit def toSquashable[A](ml: MaybeLater[Option[A]]) = new MaybeLaterSquashable[A](ml)
+
+  implicit def toOptionT[A](ml: MaybeLater[A])(implicit ec: ExecutionContext) = optionT(Tools.scalaz.scalaFutureToScalazTask(ml.body))
+
+  implicit def toMaybeLater[A](ot: OptionT[Task, A])(implicit ec: ExecutionContext) = MaybeLater(Tools.scalaz.scalazTaskToScalaFuture(ot.run))
 }
 
 

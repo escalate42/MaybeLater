@@ -4,6 +4,8 @@ import org.specs2.mutable.Specification
 import scala.concurrent._
 import scala.concurrent.duration._
 import org.specs2.time.NoTimeConversions
+import scalaz.concurrent.Task
+import scalaz.OptionT
 
 /**
  * User: wert
@@ -13,6 +15,8 @@ import org.specs2.time.NoTimeConversions
 class ToolsTest extends Specification with NoTimeConversions {
 
   import Tools._
+  import Tools.scalaz._
+  import MaybeLater._
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "Tools" should {
@@ -52,6 +56,20 @@ class ToolsTest extends Specification with NoTimeConversions {
       val list = List(1, 2, 3, 4, 5)
       val fList = future { List(1, 2, 3, 4, 5) }
       Await.result(fList.toMaybeLater.asAwaitable, 10 seconds) == list
+    }
+
+    "allow .toOptionT syntax on MaybeLater[T]" in {
+      def fun(value: Int) = MaybeLater.nowSome(value + 1)
+      val mlSome = MaybeLater.nowSome(1)
+      val otSome: OptionT[Task, Int] = for {
+        value    <- mlSome.toOptionT
+        updValue <- fun(value).toOptionT
+      } yield updValue
+      Await.result(otSome.asAwaitable, 10 seconds) == 2
+    }
+
+    "allow to use OptionT methods on MaybeLater when implicits imported" in {
+      !MaybeLater.nowNone[Int].isDefined.run
     }
   }
 }
