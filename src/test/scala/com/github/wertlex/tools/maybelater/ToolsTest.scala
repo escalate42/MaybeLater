@@ -1,11 +1,12 @@
 package com.github.wertlex.tools.maybelater
 
+import com.github.wertlex.tools.eitherlater.LeftDescription
 import org.specs2.mutable.Specification
 import scala.concurrent._
 import scala.concurrent.duration._
 import org.specs2.time.NoTimeConversions
 import scalaz.concurrent.Task
-import scalaz.OptionT
+import scalaz._
 
 /**
  * User: wert
@@ -15,9 +16,7 @@ import scalaz.OptionT
 class ToolsTest extends Specification with NoTimeConversions {
 
   import Tools._
-  import Tools.scalaz._
   import MaybeLater._
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   "Tools" should {
     "allow ml.toFutureBoolean syntax for MaybeLater[Boolean]" in {
@@ -70,6 +69,20 @@ class ToolsTest extends Specification with NoTimeConversions {
 
     "allow to use OptionT methods on MaybeLater when implicits imported" in {
       !MaybeLater.nowNone[Int].isDefined.run
+    }
+
+    "allow to transform MaybeLater to EitherLater with implicit conversion" in {
+      val value    = "some value"
+      val expected = "SOME VALUE RIGHT"
+      val error    = LeftDescription("no value supplied")
+      def toUpperCaseEl(ml: MaybeLater[String]) = for {
+        el    <- ml.toEitherLater(error)
+        updEl =  el.toUpperCase + " RIGHT"
+      } yield updEl
+      val right = toUpperCaseEl(MaybeLater.nowSome(value))
+      val left  = toUpperCaseEl(MaybeLater.nowNone[String])
+      right.run.run == \/-(expected)
+      left.run.run  == -\/(error)
     }
   }
 }

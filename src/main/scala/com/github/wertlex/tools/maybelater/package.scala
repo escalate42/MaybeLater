@@ -1,7 +1,6 @@
 package com.github.wertlex.tools
 
 import scala.concurrent._
-import com.github.wertlex.tools.maybelater.MaybeLater
 
 /**
  * User: wert
@@ -21,4 +20,5 @@ package object maybelater {
     */
   def maybeLater[A](body: => Option[A])(implicit ec: ExecutionContext): MaybeLater[A] = MaybeLater(future(body))
 
+  def ml[A](body: => Option[A])(implicit ec: ExecutionContext): MaybeLater[A] = maybeLater(body)
 }

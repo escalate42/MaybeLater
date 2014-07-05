@@ -1,12 +1,13 @@
 package com.github.wertlex.tools.maybelater
 
+import com.github.wertlex.tools.eitherlater.{LeftDescription, EitherLater}
+
 import scala.collection.generic.CanBuildFrom
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 import scalaz.concurrent.Task
-import scalaz.OptionT
+import scalaz._
 import scalaz.OptionT._
-import scalaz.{\/, \/-, -\/}
 
 /**
  * User: wert
@@ -73,6 +74,18 @@ object Tools {
 
   implicit class OptionTToMaybeLater[T](val ot: OptionT[Task, T]) extends AnyVal {
     def toMaybeLater(implicit ec: ExecutionContext): MaybeLater[T] = MaybeLater(scalaz.scalazTaskToScalaFuture(ot.run))
+  }
+
+
+  def maybeLaterToEitherLater[T](left: LeftDescription)(ml: MaybeLater[T])(implicit ec: ExecutionContext): EitherLater[T] = EitherT.fromEither(
+    scalaz.scalaFutureToScalazTask(ml.asFuture).map {
+      case Some(v) => Right(v)
+      case None    => Left(left)
+    }
+  )
+
+  implicit class MaybeLaterToEitherLater[T](val ml: MaybeLater[T]) extends AnyVal {
+    def toEitherLater(left: LeftDescription)(implicit ec: ExecutionContext) = maybeLaterToEitherLater(left)(ml)
   }
 
   object scalaz {
