@@ -15,19 +15,19 @@ object Tools {
    * Implicit class to provide maybeLater.flatten syntax
    * @param el
    */
-  implicit class ListOfEitherLaterFlatten[A, M[_] <: TraversableOnce[_]](val el: M[EitherLater[A]]) extends AnyVal {
+  implicit class ListOfEitherLaterFlatten[L, R, M[_] <: TraversableOnce[_]](val el: M[EitherLater[L, R]]) extends AnyVal {
     def toEitherLater(
-      implicit cbf: CanBuildFrom[M[EitherLater[A]], A, M[A]],
+      implicit cbf: CanBuildFrom[M[EitherLater[L, R]], R, M[R]],
       executor: ExecutionContext
-    ): EitherLater[M[A]] = sequence(el)
+    ): EitherLater[L, M[R]] = sequence(el)
   }
 
   /**
    * Implicit class to provide maybeLater.flatten syntax
    * @param el
    */
-  implicit class EitherLaterOptionFlatten[A](val el: EitherLater[Option[A]]) extends AnyVal {
-    def flatten(left: LeftDescription)(implicit ec: ExecutionContext): EitherLater[A] = EitherT(
+  implicit class EitherLaterOptionFlatten[L, R](val el: EitherLater[L, Option[R]]) extends AnyVal {
+    def flatten(left: L)(implicit ec: ExecutionContext): EitherLater[L, R] = EitherT(
       el.run.map {
         case -\/(l) => -\/(l)
         case \/-(o) => o match {
@@ -42,7 +42,7 @@ object Tools {
    * Implicit class to provide maybeLater.toFutureBoolean syntax
    * @param el
    */
-  implicit class SimplifyToTask(val el: EitherLater[Boolean]) extends AnyVal {
+  implicit class SimplifyToTask[L](val el: EitherLater[L, Boolean]) extends AnyVal {
     def toTaskBoolean(implicit ec: ExecutionContext): Task[Boolean] = el.run.map {
       case \/-(value) => value
       case -\/(_)     => false
@@ -53,7 +53,7 @@ object Tools {
    * Implicit class to provide maybeLater.toFutureBoolean syntax
    * @param el
    */
-  implicit class SimplifyToFuture(val el: EitherLater[Boolean]) extends AnyVal {
+  implicit class SimplifyToFuture[L](val el: EitherLater[L, Boolean]) extends AnyVal {
     def toFutureBoolean(implicit ec: ExecutionContext): Future[Boolean] = scalazTaskToScalaFuture(
       el.run.map {
         case \/-(value) => value
@@ -64,11 +64,11 @@ object Tools {
 
   /**
    * Allows myFuture.toMaybeLater syntax for future
-   * @param fo
-   * @tparam T
+   * @param fo - future
+   * @tparam R - right param
    */
-  implicit class FutureOptionToEitherLater[T](val fo: Future[Option[T]]) extends AnyVal {
-    def toEitherLater(left: LeftDescription)(implicit ec: ExecutionContext): EitherLater[T] = EitherT(
+  implicit class FutureOptionToEitherLater[R](val fo: Future[Option[R]]) extends AnyVal {
+    def toEitherLater[L](left: L)(implicit ec: ExecutionContext): EitherLater[L, R] = EitherT(
       scalaFutureToScalazTask(fo).map {
         case Some(v) => \/-(v)
         case None    => -\/(left)
@@ -78,11 +78,11 @@ object Tools {
 
   /**
    * Allows myFuture.toMaybeLater syntax for future
-   * @param fo
-   * @tparam T
+   * @param fo - future
+   * @tparam R - right type
    */
-  implicit class FutureListToEitherLater[T](val fo: Future[List[T]]) extends AnyVal {
-    def toEitherLater(implicit ec: ExecutionContext): EitherLater[List[T]] = EitherT.right(
+  implicit class FutureListToEitherLater[R](val fo: Future[List[R]]) extends AnyVal {
+    def toEitherLater[L](implicit ec: ExecutionContext): EitherLater[L, List[R]] = EitherT.right(
       scalaFutureToScalazTask(fo)
     )
   }

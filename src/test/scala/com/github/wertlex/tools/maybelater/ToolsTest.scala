@@ -1,12 +1,12 @@
 package com.github.wertlex.tools.maybelater
 
-import com.github.wertlex.tools.eitherlater.LeftDescription
 import org.specs2.mutable.Specification
 import scala.concurrent._
 import scala.concurrent.duration._
 import org.specs2.time.NoTimeConversions
 import scalaz.concurrent.Task
 import scalaz._
+import scalaz.std.AllInstances._
 
 /**
  * User: wert
@@ -18,6 +18,9 @@ class ToolsTest extends Specification with NoTimeConversions {
   import Tools._
   import MaybeLater._
 
+  case class LeftDescription(value: String)
+  implicit def leftDescriptionEquals = Equal.equalA[LeftDescription]
+
   "Tools" should {
     "allow ml.toFutureBoolean syntax for MaybeLater[Boolean]" in {
 
@@ -28,9 +31,9 @@ class ToolsTest extends Specification with NoTimeConversions {
 
     "return boolean as is if some boolean presented, or false if no boolean found" in {
 
-      Await.result( MaybeLater.nowSome(true).toFutureBoolean, 10 seconds)                   == true and
-      Await.result( MaybeLater.nowSome(false).toFutureBoolean, 10 seconds)                  == false and
-      Await.result( (MaybeLater.nowNone: MaybeLater[Boolean]).toFutureBoolean, 10 seconds)  == false
+      Await.result( MaybeLater.nowSome(true).toFutureBoolean, 10 seconds)                   === true and
+      Await.result( MaybeLater.nowSome(false).toFutureBoolean, 10 seconds)                  === false and
+      Await.result( (MaybeLater.nowNone: MaybeLater[Boolean]).toFutureBoolean, 10 seconds)  === false
     }
 
     "allow .toMaybeLater syntax for Future[Option[T]]" in {
@@ -39,22 +42,22 @@ class ToolsTest extends Specification with NoTimeConversions {
     }
 
     "allow .flatten syntax for MaybeLater[Option[T]]" in {
-      Await.result(MaybeLater.nowSome[Option[String]](Some("true")).flatten.asAwaitableOpt, 10 seconds) == Some("true") and
-      Await.result(MaybeLater.nowSome[Option[String]](None).flatten.asAwaitableOpt, 10 seconds) == None and
-      Await.result(MaybeLater.nowNone[Option[String]].flatten.asAwaitableOpt, 10 seconds) == None
+      Await.result(MaybeLater.nowSome[Option[String]](Some("true")).flatten.asAwaitableOpt, 10 seconds) === Some("true") and
+      Await.result(MaybeLater.nowSome[Option[String]](None).flatten.asAwaitableOpt, 10 seconds) === None and
+      Await.result(MaybeLater.nowNone[Option[String]].flatten.asAwaitableOpt, 10 seconds) === None
     }
 
     "allow .toMaybeLater syntax on List[MaybeLater[T]]" in {
       val mlList: List[MaybeLater[Int]] = List(
         MaybeLater.nowSome(1), MaybeLater.nowNone, MaybeLater.nowSome(3), MaybeLater.nowSome(4)
       )
-      Await.result(mlList.toMaybeLater.asAwaitable, 10 seconds) == List(1, 3, 4)
+      Await.result(mlList.toMaybeLater.asAwaitable, 10 seconds) === List(1, 3, 4)
     }
 
     "allow .toMaybeLater syntax on Future[List[T]]" in {
       val list = List(1, 2, 3, 4, 5)
       val fList = future { List(1, 2, 3, 4, 5) }
-      Await.result(fList.toMaybeLater.asAwaitable, 10 seconds) == list
+      Await.result(fList.toMaybeLater.asAwaitable, 10 seconds) === list
     }
 
     "allow .toOptionT syntax on MaybeLater[T]" in {
@@ -64,7 +67,7 @@ class ToolsTest extends Specification with NoTimeConversions {
         value    <- mlSome.toOptionT
         updValue <- fun(value).toOptionT
       } yield updValue
-      Await.result(otSome.asAwaitable, 10 seconds) == 2
+      Await.result(otSome.asAwaitable, 10 seconds) === 2
     }
 
     "allow to use OptionT methods on MaybeLater when implicits imported" in {
@@ -81,8 +84,8 @@ class ToolsTest extends Specification with NoTimeConversions {
       } yield updEl
       val right = toUpperCaseEl(MaybeLater.nowSome(value))
       val left  = toUpperCaseEl(MaybeLater.nowNone[String])
-      right.run.run == \/-(expected)
-      left.run.run  == -\/(error)
+      right.run.run === \/-(expected)
+      left.run.run  === -\/(error)
     }
   }
 }

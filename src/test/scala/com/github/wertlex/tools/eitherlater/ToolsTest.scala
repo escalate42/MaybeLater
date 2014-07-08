@@ -12,6 +12,8 @@ import scalaz.std.AllInstances._
  */
 class ToolsTest extends Specification with NoTimeConversions {
 
+  case class LeftDescription(value: String)
+  implicit def leftDescriptionEquals = Equal.equalA[LeftDescription]
   val left = LeftDescription("fail")
 
   "Tools" should {
@@ -20,9 +22,9 @@ class ToolsTest extends Specification with NoTimeConversions {
     }
 
     "return boolean as is if some boolean presented, or false if no boolean found" in {
-      eitherLaterRight(true).toTaskBoolean.run           and
-      eitherLaterRight(false).toTaskBoolean.run == false and
-      eitherLaterLeft[Boolean](left).toTaskBoolean.run == false
+      eitherLaterRight(true).toTaskBoolean.run  === true  and
+      eitherLaterRight(false).toTaskBoolean.run === false and
+      eitherLaterLeft(left).toTaskBoolean.run === false
     }
 
     "allow .toEitherLater syntax for Future[Option[T]]" in {
@@ -30,13 +32,13 @@ class ToolsTest extends Specification with NoTimeConversions {
     }
 
     "allow .flatten syntax for EitherLater[Option[T]]" in {
-      eitherLaterRight(Some("true")).flatten(left).run.run === \/-("true") and
-      eitherLaterRight[Option[String]](None).flatten(left).run.run === -\/(left) and
-      eitherLaterLeft[Option[String]](left).flatten(left).run.run === -\/(left)
+      eitherLaterRight[LeftDescription, Option[String]](Some("true")).flatten(left).run.run === \/-("true") and
+      eitherLaterRight[LeftDescription, Option[String]](None).flatten(left).run.run === -\/(left) and
+      eitherLaterLeft[LeftDescription, Option[String]](left).flatten(left).run.run === -\/(left)
     }
 
     "allow .toEitherLater syntax on List[EitherLater[T]]" in {
-      val elList: List[EitherLater[Int]] = List(elr(1), ell(left), elr(3), elr(4))
+      val elList: List[EitherLater[LeftDescription, Int]] = List(elr(1), ell(left), elr(3), elr(4))
       elList.toEitherLater.run.run === \/-(List(1, 3, 4))
     }
 
@@ -45,11 +47,11 @@ class ToolsTest extends Specification with NoTimeConversions {
       val fList = future {
         List(1, 2, 3, 4, 5)
       }
-      fList.toEitherLater.run.run === \/-(list)
+      fList.toEitherLater[LeftDescription].run.run === \/-(list)
     }
 
     "allow to use EitherT methods on EitherLater" in {
-      ell[Int](left).isLeft.run
+      ell[LeftDescription, Int](left).isLeft.run
     }
   }
 }
