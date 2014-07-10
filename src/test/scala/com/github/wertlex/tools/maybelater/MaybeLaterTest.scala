@@ -115,8 +115,8 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
       val fullML  = MaybeLater.nowSome("text")
       val emptyML = MaybeLater.nowNone
 
-      val m1 = fullML.flatFold(_ => MaybeLater.nowSome(true))(MaybeLater.nowSome(false))
-      val m2 = emptyML.flatFold(_ => MaybeLater.nowSome(true))(MaybeLater.nowSome(false))
+      val m1 = fullML.flatFold(MaybeLater.nowSome(false))(_ => MaybeLater.nowSome(true))
+      val m2 = emptyML.flatFold(MaybeLater.nowSome(false))(_ => MaybeLater.nowSome(true))
 
       Await.result(m1, 10 seconds) must beEqualTo(true)
       Await.result(m2, 10 seconds) must beEqualTo(false)
