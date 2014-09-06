@@ -1,9 +1,10 @@
-package com.github.wertlex.tools.maybelater
+package com.github.escalate42.maybelater
 
 import org.specs2.mutable.Specification
+import org.specs2.time.NoTimeConversions
+
 import scala.concurrent._
 import scala.concurrent.duration._
-import org.specs2.time.NoTimeConversions
 
 /**
  * User: wert
@@ -12,8 +13,9 @@ import org.specs2.time.NoTimeConversions
  */
 class ToolsTest extends Specification with NoTimeConversions {
 
-  import Tools._
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import com.github.escalate42.maybelater.Tools._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
   "Tools" should {
     "allow ml.toFutureBoolean syntax for MaybeLater[Boolean]" in {

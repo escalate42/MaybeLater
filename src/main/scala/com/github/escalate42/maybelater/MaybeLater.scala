@@ -1,11 +1,10 @@
-package com.github.wertlex.tools.maybelater
+package com.github.escalate42.maybelater
 
-import scala.concurrent._
-import scala.Some
-import scala.util.{Success, Failure, Try}
-import scala.util.control.NonFatal
-import scala.concurrent.duration.Duration
 import scala.collection.generic.CanBuildFrom
+import scala.concurrent._
+import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 /**
  * Wrapper over Future[Option[A]].

@@ -1,7 +1,6 @@
-package com.github.wertlex.tools
+package com.github.escalate42
 
 import scala.concurrent._
-import com.github.wertlex.tools.maybelater.MaybeLater
 
 /**
  * User: wert

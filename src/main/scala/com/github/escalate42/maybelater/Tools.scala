@@ -1,7 +1,7 @@
-package com.github.wertlex.tools.maybelater
+package com.github.escalate42.maybelater
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.generic.CanBuildFrom
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * User: wert

@@ -1,11 +1,13 @@
-package com.github.wertlex.tools.maybelater
+package com.github.escalate42.maybelater
+
+import java.util.concurrent.atomic.AtomicLong
 
 import org.specs2.mutable._
+import org.specs2.specification.Scope
 import org.specs2.time.NoTimeConversions
+
 import scala.concurrent._
 import scala.concurrent.duration._
-import java.util.concurrent.atomic.AtomicLong
-import org.specs2.specification.Scope
 
 /**
  * User: wert
