@@ -2,9 +2,9 @@ import sbt._
 import Keys._
 
 object BuildSettings {
-  val buildOrganization = "wert_lex"
+  val buildOrganization = "escalate42"
   val buildVersion      = "0.1-SNAPHSOT"
-  val buildScalaVersion = "2.10.3"
+  val buildScalaVersion = "2.11.4"
 
   val buildSettings = Defaults.defaultSettings ++ Seq (
     organization := buildOrganization,
