@@ -64,6 +64,7 @@ class LaterEither[ReasonT, SuccessT](private val plain: Future[ReasonT \/ Succes
     }
     new LaterEither(r)
   }
+
 }
 
 
@@ -104,27 +105,3 @@ object LaterEither {
   }
 }
 
-
-object Test {
-
-  import LaterEither.Implicits._
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-
-  case class Error(descr: String)
-  case class NotFound(descr: String)
-  case class User(name: String)
-  case class BSON(value: String)
-
-
-  val fes: Future[Error \/ String] = ???
-  val le: LaterEither[Error, User] = ???
-
-
-  def fromBSONCollection: Future[Option[BSON]] = Future.successful(Some(BSON("")))
-
-
-  val r = fromBSONCollection.toLaterEither(onEmpty = NotFound("no such bson"))
-
-
-}
