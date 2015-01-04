@@ -18,6 +18,6 @@ package object maybelater {
     *  @param ec       the execution context on which the future is run
     *  @return         the `MaybeLater` holding the result of the computation
     */
-  def maybeLater[A](body: => Option[A])(implicit ec: ExecutionContext): MaybeLater[A] = MaybeLater(future(body))
+  def maybeLater[A](body: => Option[A])(implicit ec: ExecutionContext): MaybeLater[A] = MaybeLater(Future(body))
 
 }

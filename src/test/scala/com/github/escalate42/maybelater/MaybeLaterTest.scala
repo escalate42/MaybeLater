@@ -29,7 +29,7 @@ class MaybeLaterTest extends Specification with NoTimeConversions {
     }
 
     "allow to get result with Await.result " in {
-      val ml = MaybeLater(future{ Some("text") })
+      val ml = MaybeLater(Future{ Some("text") })
       Await.result(ml, 10 seconds) must beEqualTo("text")
     }
 

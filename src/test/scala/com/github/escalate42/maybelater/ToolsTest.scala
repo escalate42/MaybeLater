@@ -52,7 +52,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
     "allow .toMaybeLater syntax on Future[List[T]]" in {
       val list = List(1, 2, 3, 4, 5)
-      val fList = future { List(1, 2, 3, 4, 5) }
+      val fList = Future { List(1, 2, 3, 4, 5) }
       Await.result(fList.toMaybeLater.asAwaitable, 10 seconds) == list
     }
   }

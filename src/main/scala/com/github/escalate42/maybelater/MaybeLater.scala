@@ -28,7 +28,7 @@ class MaybeLater[+A](protected val body: Future[Option[A]]) {
   )
 
   def flatMap[B](f: A => MaybeLater[B])(implicit ec: ExecutionContext): MaybeLater[B] = {
-    val pr = promise[Option[B]]()
+    val pr = Promise[Option[B]]()
     val fu = pr.future
 
     body onComplete {
@@ -55,7 +55,7 @@ class MaybeLater[+A](protected val body: Future[Option[A]]) {
 
 
   def fold[B](onNone: => B, onSome: A => B)(implicit ec: ExecutionContext): MaybeLater[B] = {
-    val p = promise[B]()
+    val p = Promise[B]()
     body.onComplete{
       case Success(optA) => {
         if(optA.isDefined)  p.success(onSome(optA.get))

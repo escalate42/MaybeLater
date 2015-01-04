@@ -10,7 +10,7 @@ import Scalaz._
  * Date: 02.01.15
  * Time: 21:54
  */
-class LaterEither[ReasonT, SuccessT](private val plain: Future[ReasonT \/ SuccessT]) {
+class LaterEither[+ReasonT, +SuccessT](private val plain: Future[ReasonT \/ SuccessT]) {
 
   def map[B](f: SuccessT => B)(implicit ec: ExecutionContext): LaterEither[ReasonT, B] = {
     val r = plain.map{ either =>
@@ -19,8 +19,8 @@ class LaterEither[ReasonT, SuccessT](private val plain: Future[ReasonT \/ Succes
     new LaterEither(r)
   }
 
-  def flatMap[B](f: SuccessT => LaterEither[ReasonT, B])(implicit ec: ExecutionContext): LaterEither[ReasonT, B] = {
-    val r: Future[ReasonT \/ B] = plain.flatMap{ either =>
+  def flatMap[B, R >: ReasonT](f: SuccessT => LaterEither[R, B])(implicit ec: ExecutionContext): LaterEither[R, B] = {
+    val r = plain.flatMap{ either =>
      either match {
        case -\/(l) => Future.successful(-\/(l))
        case \/-(r) => f(r).plain
@@ -38,7 +38,7 @@ class LaterEither[ReasonT, SuccessT](private val plain: Future[ReasonT \/ Succes
   }
 
 
-  def leftFlatMap[A](f: ReasonT => LaterEither[A, SuccessT])(implicit ec: ExecutionContext): LaterEither[A, SuccessT] = {
+  def leftFlatMap[A, S >: SuccessT](f: ReasonT => LaterEither[A, S])(implicit ec: ExecutionContext): LaterEither[A, S] = {
     val r = plain.flatMap{ either =>
       either match {
         case -\/(l) => f(l).plain
